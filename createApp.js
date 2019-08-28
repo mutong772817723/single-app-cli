@@ -471,6 +471,7 @@ function run(
 
                     const pnpPath = path.join(process.cwd(), '.png.js');
                     const nodeArgs = fs.existsSync(pnpPath) ? ['--require', pnpPath] : [];
+                    /**开始执行下载安装模板操作 */
                     await executeNodeScript(
                         { cwd: process.cwd(), args: nodeArgs },
                         [root, appName, verbose, originalDirectory, template],

@@ -1,6 +1,6 @@
 {
   "name": "single-app-cli",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "a demo for react project create",
   "main": "index.js",
   "keywords": [
@@ -20,7 +20,7 @@
   },
   "files": [
     "index.js",
-    "createReactApp.js",
+    "createApp.js",
     "yarn.lock.cached"
   ],
   "bin": {
