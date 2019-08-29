@@ -197,23 +197,8 @@ function createApp(
         process.exit(1);
     }
 
-    /**如果不实用yarn，即调用npm */
-    if (!useYarn) {
-        // const npmInfo = checkNpmVersion();
-        //如果npm的版本低于5.0.0，则使用react-scripts@0.9.x来进行引导安装
-        // if (!npmInfo.hasMinNpm) {
-        //     if (npmInfo.npmVersion) {
-        //         console.log(
-        //             chalk.yellow(
-        //                 `你是用的npm版本 ${npmInfo.npmVersion}过低，所以项目只能使用较旧的工具进行引导安装.\n\n` +
-        //                 `如果想要等到更高更完整的支持和体验，请升级npm到5及以上版本。\n`
-        //             )
-        //         );
-        //     }
-        //     version = `${initScriptPackage}@0.9.x`;
-        // }
-    }//该逻辑为是否开启yarn的pnp特性，pnp的好处可参考文献：https://loveky.github.io/2019/02/11/yarn-pnp/ 
-    else if (usePnp) {
+    //该逻辑为是否开启yarn的pnp特性，pnp的好处可参考文献：https://loveky.github.io/2019/02/11/yarn-pnp/ 
+    if (useYarn && usePnp) {
         const yarnInfo = checkYarnVersion();
         if (!yarnInfo.hasMinYarnPnp) {
             if (yarnInfo.yarnVersion) {
@@ -285,7 +270,7 @@ function checkAppName(appName) {
     }
 
     // TODO: there should be a single place that holds the dependencies
-    const dependencies = ['react', 'react-dom', 'react-scripts'].sort();
+    const dependencies = ['react', 'react-dom', initScriptPackage].sort();
     if (dependencies.indexOf(appName) >= 0) {
         console.error(
             chalk.red(
@@ -474,29 +459,13 @@ function run(
                     const pnpPath = path.join(process.cwd(), '.png.js');
                     const nodeArgs = fs.existsSync(pnpPath) ? ['--require', pnpPath] : [];
                     /**开始执行下载安装模板操作 */
-                    // await executeNodeScript(
-                    //     { cwd: process.cwd(), args: nodeArgs },
-                    //     [root, appName, verbose, originalDirectory, template],
-                    //     `
-                    //     var init = require('${packageName}/scripts/init.js');
-                    //     init.apply(null, JSON.parse(process.argv[1]));
-                    //   `)
-
-
-                    /**简化版 */
-                    const init = require(`${packageName}/scripts/init.js`);
-                    init(root, appName, verbose, originalDirectory, template);
-
-                    if (version === 'react-scripts@0.9.x') {
-                        //还是一样的信息，不翻译了
-                        console.log(
-                            chalk.yellow(
-                                `\nNote: the project was bootstrapped with an old unsupported version of tools.\n` +
-                                `Please update to Node >=8.10 and npm >=5 to get supported tools in new projects.\n`
-                            )
-                        );
-                    }
-
+                    await executeNodeScript(
+                        { cwd: process.cwd(), args: nodeArgs },
+                        [root, appName, verbose, originalDirectory, template],
+                        `
+                        var init = require('${packageName}/scripts/init.js');
+                        init.apply(null, JSON.parse(process.argv[1]));
+                      `)
 
                 })
                 .catch(reason => {
@@ -550,7 +519,7 @@ function run(
 
 /**将包名和版本号做拼接 */
 function getInstallPackage(version, originalDirectory) {
-    let packageToInstall = program.initScript || 'react-scripts';
+    let packageToInstall = initScriptPackage;
     //先格式化版本信息，不合格返回null
     const validSemver = semver.valid(version);
     if (validSemver) {
@@ -569,34 +538,6 @@ function getInstallPackage(version, originalDirectory) {
         } else {
             // 针对tar.gz及可选路径
             packageToInstall = version;
-        }
-    }
-
-    const scriptsToWarn = [
-        {
-            name: 'react-scripts-ts',
-            message: chalk.yellow(
-                'react-scripts-ts包已经被废弃. 新建的React项目中已经可以支持TypeScript原生语法. 你可以用 --typescriptwhen 来生成支持Typescript语法的app，还想继续使用react-scripts-ts吗?'
-            ),
-        },
-    ];
-
-    /**这一段判断感觉有些多余，永远是false */
-    for (const script of scriptsToWarn) {
-        if (packageToInstall.startsWith(script.name)) {
-            inquirer
-                .prompt({
-                    type: 'confirm',
-                    name: 'useScript',
-                    message: script.message,
-                    default: false,
-                })
-                .then(answer => {
-                    if (!answer.useScript) {
-                        process.exit(0);
-                    }
-                    return packageToInstall;
-                })
         }
     }
 
