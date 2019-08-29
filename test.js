@@ -1,1 +1,2 @@
-console.log(process.argv[1]);
+const semver = require('semver');
+const v = semver.satisfies(process.versions.node, '>=8.10.0')
