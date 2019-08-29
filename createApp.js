@@ -64,7 +64,6 @@ const errorLogFilePatterns = [
     'yarn-debug.log',
 ];
 
-
 let projectName;
 
 const program = new commander.Command(packageJson.name)
@@ -83,14 +82,11 @@ const program = new commander.Command(packageJson.name)
     .option('--use-npm')
     .option('--use-pnp')
     .option('--typescript')
-    .option('--init-script', 'setting init script package,default react-scripts')// 我自己加的参数，设置初始化包，默认用react-script
     .allowUnknownOption()
     .on('--help', () => {
     })
     .parse(process.argv);
 
-/**用来做初始化项目的工具包，默认走react-scripts */
-const initScriptPackage = program.initScript || 'react-scripts';
 //如果键入 --info  输出信息
 if (program.info) {
     envinfo
@@ -99,7 +95,7 @@ if (program.info) {
                 System: ['OS', 'CPU'],
                 Binaries: ['Node', 'npm', 'Yarn'],
                 Browsers: ['Chrome', 'Edge', 'Internet Explorer', 'Firefox', 'Safari'],
-                npmPackages: ['react', 'react-dom', initScriptPackage],
+                npmPackages: ['react', 'react-dom', 'react-scripts'],
                 npmGlobalPackages: ['create-react-app'],
             },
             {
@@ -196,22 +192,35 @@ function createApp(
     if (!useYarn && !checkThatNpmCanReadCwd()) {
         process.exit(1);
     }
+    /**判断当前nodejs版本是否大于8.10.0,如果小于，则使用react-scripts@0.9.x */
+    if (!semver.satisfies(process.version, '>=8.10.0')) {
+        console.log(
+            chalk.yellow(
+                `你当前使用的nodejs版本 ${
+                process.version
+                } 过低，所以该项目将会使用较旧版本的工具来进行引导安装。\n\n` +
+                `如果想要等到更高更完整的支持和体验，请升级nodejs到8.10.0或者更高的版本\n`
+            )
+        );
+        // Fall back to latest supported react-scripts on Node 4
+        version = 'react-scripts@0.9.x';
+    }
 
     /**如果不实用yarn，即调用npm */
     if (!useYarn) {
-        // const npmInfo = checkNpmVersion();
+        const npmInfo = checkNpmVersion();
         //如果npm的版本低于5.0.0，则使用react-scripts@0.9.x来进行引导安装
-        // if (!npmInfo.hasMinNpm) {
-        //     if (npmInfo.npmVersion) {
-        //         console.log(
-        //             chalk.yellow(
-        //                 `你是用的npm版本 ${npmInfo.npmVersion}过低，所以项目只能使用较旧的工具进行引导安装.\n\n` +
-        //                 `如果想要等到更高更完整的支持和体验，请升级npm到5及以上版本。\n`
-        //             )
-        //         );
-        //     }
-        //     version = `${initScriptPackage}@0.9.x`;
-        // }
+        if (!npmInfo.hasMinNpm) {
+            if (npmInfo.npmVersion) {
+                console.log(
+                    chalk.yellow(
+                        `你是用的npm版本 ${npmInfo.npmVersion}过低，所以项目只能使用较旧的工具进行引导安装.\n\n` +
+                        `如果想要等到更高更完整的支持和体验，请升级npm到5及以上版本。\n`
+                    )
+                );
+            }
+            version = 'react-scripts@0.9.x';
+        }
     }//该逻辑为是否开启yarn的pnp特性，pnp的好处可参考文献：https://loveky.github.io/2019/02/11/yarn-pnp/ 
     else if (usePnp) {
         const yarnInfo = checkYarnVersion();
@@ -474,18 +483,13 @@ function run(
                     const pnpPath = path.join(process.cwd(), '.png.js');
                     const nodeArgs = fs.existsSync(pnpPath) ? ['--require', pnpPath] : [];
                     /**开始执行下载安装模板操作 */
-                    // await executeNodeScript(
-                    //     { cwd: process.cwd(), args: nodeArgs },
-                    //     [root, appName, verbose, originalDirectory, template],
-                    //     `
-                    //     var init = require('${packageName}/scripts/init.js');
-                    //     init.apply(null, JSON.parse(process.argv[1]));
-                    //   `)
-
-
-                    /**简化版 */
-                    const init = require(`${packageName}/scripts/init.js`);
-                    init(root, appName, verbose, originalDirectory, template);
+                    await executeNodeScript(
+                        { cwd: process.cwd(), args: nodeArgs },
+                        [root, appName, verbose, originalDirectory, template],
+                        `
+                        var init = require('${packageName}/scripts/init.js');
+                        init.apply(null, JSON.parse(process.argv[1]));
+                      `)
 
                     if (version === 'react-scripts@0.9.x') {
                         //还是一样的信息，不翻译了
@@ -550,7 +554,7 @@ function run(
 
 /**将包名和版本号做拼接 */
 function getInstallPackage(version, originalDirectory) {
-    let packageToInstall = program.initScript || 'react-scripts';
+    let packageToInstall = 'react-scripts';
     //先格式化版本信息，不合格返回null
     const validSemver = semver.valid(version);
     if (validSemver) {
