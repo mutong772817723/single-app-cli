@@ -7,6 +7,8 @@
  * 然后通过apply 将参数[root, appName, verbose, originalDirectory, template] 穿了进来
  */
 
+const path = require('path');
+
 /**
  * 监听异常，捕获到之后直接终止进程，
  * promise如果异常并且没有被catch接收的异常会被捕获
@@ -32,5 +34,19 @@ module.exports = function (
     originalDirectory,
     template
 ) {
-    console.log('init');
+    //获取react-scripts文件夹
+    const ownPath = path.dirname(__dirname);
+    //初始化项目的配置文件
+    const appPackage = require(path.join(appPath, 'package.json'));
+    //如果通过yarn安装的依赖包，会生成yarn.lock文件
+    const useYarn = fs.existsSync(path.join(appPath, 'yarn.lock'));
+
+    /**
+     * 如果依赖项没有创建，则初始化，
+     * TIP：其实如果依赖包下载成功，这个项不会为空，见 createApp.js 的 setCaretRangeForRuntimeDeps方法
+     * */ 
+    appPackage.dependencies = appPackage.dependencies || {};
+
+
+
 }

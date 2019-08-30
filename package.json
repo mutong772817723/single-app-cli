@@ -1,22 +1,22 @@
 {
   "name": "single-app-cli",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "a demo for react project create",
   "main": "index.js",
   "keywords": [
-    "react"
+    "react","node"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/facebook/create-react-app.git",
-    "directory": "packages/create-react-app"
+    "url": "https://github.com/mutong772817723/single-app-cli",
+    "directory": "packages/single-app-cli"
   },
   "license": "MIT",
   "engines": {
     "node": ">=8"
   },
   "bugs": {
-    "url": "https://github.com/facebook/create-react-app/issues"
+    "url": "https://github.com/mutong772817723/single-app-cli/issues"
   },
   "files": [
     "index.js",

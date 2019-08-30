@@ -1,0 +1,28 @@
+{
+  "name": "react-init-script",
+  "version": "1.0.0",
+  "description": "a library for react project init , from react-scripts, ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mutong772817723/single-app-cli.git"
+  },
+  "engines": {
+    "node": ">=8"
+  },
+  "keywords": [
+    "react"
+  ],
+  "files": [
+    "scripts"
+  ],
+  "author": "qiumohanyu",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mutong772817723/single-app-cli/issues"
+  },
+  "homepage": "https://github.com/mutong772817723/single-app-cli#readme"
+}
